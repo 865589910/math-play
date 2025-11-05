@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数学钢琴块 - 双人对战</title>
+    <link rel="stylesheet" href="css/piano-pvp.css">
+</head>
+<body>
+    <div class="game-container">
+        <!-- 游戏头部 -->
+        <header class="game-header">
+            <h1>🎹 数学钢琴块 - 双人对战 🎹</h1>
+            <p class="game-subtitle">无尽模式 · 同框竞技 · 看谁得分更高！</p>
+        </header>
+
+        <!-- 开始界面 -->
+        <div id="start-screen" class="start-screen">
+            <div class="start-content">
+                <h2>🎮 游戏规则</h2>
+                <div class="rules-box">
+                    <p>📌 屏幕分为左右两边,两位玩家同时开始游戏</p>
+                    <p>📌 点击<strong>正确的算式</strong>,每次+2分</p>
+                    <p>📌 点击<strong>错误的算式</strong>或漏掉正确的算式,扣1条命</p>
+                    <p>📌 每人初始3条命,生命耗尽游戏结束</p>
+                    <p>📌 当有一方生命耗尽时,两人同时结束,比较最终得分</p>
+                    <p>📌 算式类型:100以内加减法</p>
+                </div>
+                
+                <div class="speed-control">
+                    <h3>⚡ 调整下落速度</h3>
+                    <div class="speed-slider-container">
+                        <span class="speed-label">🐌 慢速</span>
+                        <input type="range" id="speed-slider" min="0.5" max="2.0" step="0.1" value="0.8">
+                        <span class="speed-label">🐆 快速</span>
+                    </div>
+                    <div class="speed-display">当前速度: <span id="speed-value">0.8</span>x</div>
+                </div>
+
+                <button class="start-btn" onclick="startPVPGame()">🎮 开始对战</button>
+            </div>
+        </div>
+
+        <!-- 游戏主界面 -->
+        <div id="game-screen" class="game-screen" style="display: none;">
+            <!-- 玩家1区域 (左侧) -->
+            <div class="player-area player-left">
+                <div class="player-header">
+                    <div class="player-info">
+                        <div class="player-name">👤 玩家1</div>
+                        <div class="player-score">得分: <span id="score-p1">0</span></div>
+                    </div>
+                    <div class="player-lives" id="lives-p1">
+                        <span class="life-heart active">❤️</span>
+                        <span class="life-heart active">❤️</span>
+                        <span class="life-heart active">❤️</span>
+                    </div>
+                </div>
+                <div class="tiles-container" id="tiles-p1"></div>
+            </div>
+
+            <!-- 中央分隔线 -->
+            <div class="divider">
+                <div class="vs-badge">VS</div>
+            </div>
+
+            <!-- 玩家2区域 (右侧) -->
+            <div class="player-area player-right">
+                <div class="player-header">
+                    <div class="player-info">
+                        <div class="player-name">👤 玩家2</div>
+                        <div class="player-score">得分: <span id="score-p2">0</span></div>
+                    </div>
+                    <div class="player-lives" id="lives-p2">
+                        <span class="life-heart active">❤️</span>
+                        <span class="life-heart active">❤️</span>
+                        <span class="life-heart active">❤️</span>
+                    </div>
+                </div>
+                <div class="tiles-container" id="tiles-p2"></div>
+            </div>
+        </div>
+
+        <!-- 结束界面 -->
+        <div id="end-screen" class="end-screen" style="display: none;">
+            <div class="result-content">
+                <h2 id="result-title">🎉 游戏结束</h2>
+                <div class="result-stats">
+                    <div class="player-result player-result-left">
+                        <div class="player-avatar">👤</div>
+                        <h3>玩家1</h3>
+                        <div class="final-score" id="final-score-p1">0</div>
+                        <div class="result-badge" id="badge-p1"></div>
+                    </div>
+                    <div class="player-result player-result-right">
+                        <div class="player-avatar">👤</div>
+                        <h3>玩家2</h3>
+                        <div class="final-score" id="final-score-p2">0</div>
+                        <div class="result-badge" id="badge-p2"></div>
+                    </div>
+                </div>
+                <div class="result-message" id="result-message"></div>
+                <div class="result-buttons">
+                    <button class="restart-btn" onclick="restartPVPGame()">🔄 重新开始</button>
+                    <button class="back-btn" onclick="backToStart()">🏠 返回首页</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/piano-pvp.js"></script>
+</body>
+</html>
