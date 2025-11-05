@@ -6,19 +6,22 @@ const gameState = {
     speed: 0.8,
     spawnInterval: 2000, // 初始生成间隔（毫秒）
     minSpawnInterval: 800,
+    gameMode: 'add-sub', // 'add-sub' 或 'multiply'
     
     player1: {
         score: 0,
         lives: 3,
         tiles: [],
-        lastSpawnTime: 0
+        lastSpawnTime: 0,
+        isAlive: true
     },
     
     player2: {
         score: 0,
         lives: 3,
         tiles: [],
-        lastSpawnTime: 0
+        lastSpawnTime: 0,
+        isAlive: true
     },
     
     gameInterval: null,
@@ -34,6 +37,23 @@ speedSlider.addEventListener('input', (e) => {
     speedValue.textContent = parseFloat(e.target.value).toFixed(1);
 });
 
+// 选择游戏模式
+function selectMode(mode) {
+    gameState.gameMode = mode;
+    
+    // 更新按钮状态
+    const modeButtons = document.querySelectorAll('.mode-btn');
+    modeButtons.forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (mode === 'add-sub') {
+        document.querySelector('.mode-btn:nth-child(1)').classList.add('active');
+    } else {
+        document.querySelector('.mode-btn:nth-child(2)').classList.add('active');
+    }
+}
+
 // 检测设备类型
 function isTouchDevice() {
     return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
@@ -46,8 +66,8 @@ function startPVPGame() {
     
     // 初始化游戏状态
     gameState.isPlaying = true;
-    gameState.player1 = { score: 0, lives: 3, tiles: [], lastSpawnTime: 0 };
-    gameState.player2 = { score: 0, lives: 3, tiles: [], lastSpawnTime: 0 };
+    gameState.player1 = { score: 0, lives: 3, tiles: [], lastSpawnTime: 0, isAlive: true };
+    gameState.player2 = { score: 0, lives: 3, tiles: [], lastSpawnTime: 0, isAlive: true };
     
     // 切换界面
     document.getElementById('start-screen').style.display = 'none';
@@ -123,6 +143,9 @@ function spawnTile(playerNum) {
     const player = playerNum === 1 ? gameState.player1 : gameState.player2;
     const container = document.getElementById(`tiles-p${playerNum}`);
     
+    // 检查玩家是否还有生命值
+    if (!player.isAlive) return;
+    
     // 检查当前钢琴块数量（最多4个）
     const activeTiles = player.tiles.filter(tile => tile.element.parentNode).length;
     if (activeTiles >= 4) return;
@@ -131,7 +154,7 @@ function spawnTile(playerNum) {
     let column;
     let attempts = 0;
     const maxAttempts = 30;
-    const minSafeDistance = 120; // 钢琴块之间的最小距离
+    const minSafeDistance = 200; // 钢琴块之间的最小距离（调整为适应新高度）
     
     do {
         column = Math.floor(Math.random() * 5);
@@ -159,7 +182,14 @@ function spawnTile(playerNum) {
     } while (true);
     
     // 生成算式
-    const { equation, isCorrect } = generateEquation();
+    let equationData;
+    if (gameState.gameMode === 'multiply') {
+        equationData = generateMultiplicationEquation();
+    } else {
+        equationData = generateAddSubEquation();
+    }
+    
+    const { equation, isCorrect } = equationData;
     
     // 创建钢琴块元素
     const tile = document.createElement('div');
@@ -194,8 +224,35 @@ function spawnTile(playerNum) {
     });
 }
 
-// 生成数学算式（100以内加减法）
-function generateEquation() {
+// 生成乘法算式（1-5的表内乘法）
+function generateMultiplicationEquation() {
+    // 随机选择1-5的数字
+    const num1 = Math.floor(Math.random() * 5) + 1;
+    const num2 = Math.floor(Math.random() * 9) + 1; // 1-9
+    const correctAnswer = num1 * num2;
+    
+    // 随机决定是否正确（50%概率）
+    const isCorrect = Math.random() > 0.5;
+    let displayAnswer;
+    
+    if (isCorrect) {
+        displayAnswer = correctAnswer;
+    } else {
+        // 生成错误答案（相差1-10）
+        const offset = Math.floor(Math.random() * 10) + 1;
+        displayAnswer = correctAnswer + (Math.random() > 0.5 ? offset : -offset);
+        // 确保答案不为负数且在合理范围内
+        if (displayAnswer < 1) displayAnswer = correctAnswer + offset;
+        if (displayAnswer > 81) displayAnswer = correctAnswer - offset;
+        if (displayAnswer < 1) displayAnswer = 1;
+    }
+    
+    const equation = `${num1} × ${num2} = ${displayAnswer}`;
+    return { equation, isCorrect };
+}
+
+// 生成加减法算式（100以内）
+function generateAddSubEquation() {
     let num1, num2, operator, correctAnswer, displayAnswer;
     let attempts = 0;
     const maxAttempts = 50;
@@ -288,10 +345,17 @@ function handleTileClick(playerNum, tileElement, isCorrect) {
         tileElement.style.backgroundColor = '#f44336';
         tileElement.innerHTML = '✗';
         
+        // 检查是否还有生命值
         if (player.lives <= 0) {
-            endGame();
+            player.lives = 0; // 确保生命值不为负数
+            player.isAlive = false;
+            updatePlayerUI(playerNum); // 立即更新UI显示生命值为0
+            // 检查是否应该结束游戏
+            checkGameEndCondition();
             return;
         }
+        // 更新UI显示剩余生命值
+        updatePlayerUI(playerNum);
     }
     
     // 移除钢琴块
@@ -302,7 +366,38 @@ function handleTileClick(playerNum, tileElement, isCorrect) {
     }, 200);
     
     player.tiles.splice(tileIndex, 1);
-    updatePlayerUI(playerNum);
+}
+
+// 检查游戏结束条件
+function checkGameEndCondition() {
+    const p1Alive = gameState.player1.isAlive;
+    const p2Alive = gameState.player2.isAlive;
+    const p1Score = gameState.player1.score;
+    const p2Score = gameState.player2.score;
+    
+    // 如果双方都无生命值，游戏结束
+    if (!p1Alive && !p2Alive) {
+        endGame();
+        return;
+    }
+    
+    // 如果玩家1无生命值但玩家2有生命值
+    if (!p1Alive && p2Alive) {
+        // 如果玩家2的分数超过玩家1，游戏结束
+        if (p2Score > p1Score) {
+            endGame();
+            return;
+        }
+    }
+    
+    // 如果玩家2无生命值但玩家1有生命值
+    if (!p2Alive && p1Alive) {
+        // 如果玩家1的分数超过玩家2，游戏结束
+        if (p1Score > p2Score) {
+            endGame();
+            return;
+        }
+    }
 }
 
 // 更新游戏状态
@@ -322,6 +417,9 @@ function updatePlayerTiles(playerNum) {
     const container = document.getElementById(`tiles-p${playerNum}`);
     const containerHeight = container.offsetHeight;
     
+    // 如果玩家无生命值，不再生成新的钢琴块
+    if (!player.isAlive) return;
+    
     for (let i = player.tiles.length - 1; i >= 0; i--) {
         const tile = player.tiles[i];
         
@@ -329,20 +427,24 @@ function updatePlayerTiles(playerNum) {
         tile.y += gameState.speed;
         tile.element.style.top = `${tile.y}px`;
         
-        // 检查是否掉落到底部
-        if (tile.y > containerHeight - 80) {
+        // 检查是否掉落到底部（调整为适应新高度160px）
+        if (tile.y > containerHeight - 160) {
             // 如果是正确的钢琴块掉落，扣除生命值
             if (tile.isCorrect) {
                 player.lives--;
                 tile.element.style.backgroundColor = '#ff9800';
                 tile.element.innerHTML = '↓';
                 
+                // 检查是否还有生命值
                 if (player.lives <= 0) {
-                    endGame();
-                    return;
+                    player.lives = 0; // 确保生命值不为负数
+                    player.isAlive = false;
+                    updatePlayerUI(playerNum); // 立即更新UI显示生命值为0
+                    // 检查是否应该结束游戏
+                    checkGameEndCondition();
+                } else {
+                    updatePlayerUI(playerNum);
                 }
-                
-                updatePlayerUI(playerNum);
             } else {
                 // 如果是错误的钢琴块掉落，算作正确处理
                 player.score += 2;
@@ -368,6 +470,9 @@ function updatePlayerTiles(playerNum) {
                 }
                 
                 updatePlayerUI(playerNum);
+                
+                // 检查游戏结束条件
+                checkGameEndCondition();
             }
             
             // 移除钢琴块
@@ -397,6 +502,16 @@ function updatePlayerUI(playerNum) {
             heart.classList.add('active');
         }
         livesContainer.appendChild(heart);
+    }
+    
+    // 如果玩家无生命值，添加视觉效果
+    const playerArea = document.querySelector(`.player-area.player-${playerNum === 1 ? 'left' : 'right'}`);
+    if (!player.isAlive) {
+        playerArea.style.opacity = '0.7';
+        playerArea.style.filter = 'grayscale(50%)';
+    } else {
+        playerArea.style.opacity = '1';
+        playerArea.style.filter = 'none';
     }
 }
 

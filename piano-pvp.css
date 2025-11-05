@@ -81,6 +81,51 @@ body {
     color: #f5576c;
 }
 
+/* 游戏模式选择 */
+.game-mode-selection {
+    margin-bottom: 30px;
+}
+
+.game-mode-selection h3 {
+    font-size: 1.3em;
+    color: #667eea;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.mode-options {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 15px 10px;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #667eea;
+    background: #f8f9fa;
+    border: 2px solid #667eea;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.mode-btn:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.mode-btn.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
 .speed-control {
     margin-bottom: 30px;
 }
@@ -183,14 +228,21 @@ body {
     border-radius: 20px;
     overflow: hidden;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
 }
 
-.player-left {
+.player-area.player-left {
     background: linear-gradient(to bottom, rgba(102, 126, 234, 0.05) 0%, white 100%);
 }
 
-.player-right {
+.player-area.player-right {
     background: linear-gradient(to bottom, rgba(245, 87, 108, 0.05) 0%, white 100%);
+}
+
+/* 玩家失去生命值时的视觉效果 */
+.player-area:not(.player-left):not(.player-right) {
+    opacity: 0.7;
+    filter: grayscale(50%);
 }
 
 .player-header {
@@ -219,11 +271,11 @@ body {
     color: #667eea;
 }
 
-.player-left .player-score {
+.player-area.player-left .player-score {
     color: #667eea;
 }
 
-.player-right .player-score {
+.player-area.player-right .player-score {
     color: #f5576c;
 }
 
@@ -260,7 +312,7 @@ body {
 .piano-tile {
     position: absolute;
     width: 20%;
-    height: 80px;
+    height: 160px; /* 原来的2倍高度（从80px增加到160px） */
     background: #00f2fe;
     color: white;
     display: flex;
@@ -350,12 +402,12 @@ body {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.player-result-left {
+.player-result.player-result-left {
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(102, 126, 234, 0.05) 100%);
     border: 3px solid #667eea;
 }
 
-.player-result-right {
+.player-result.player-result-right {
     background: linear-gradient(135deg, rgba(245, 87, 108, 0.1) 0%, rgba(245, 87, 108, 0.05) 100%);
     border: 3px solid #f5576c;
 }
@@ -377,11 +429,11 @@ body {
     margin-bottom: 15px;
 }
 
-.player-result-left .final-score {
+.player-result.player-result-left .final-score {
     color: #667eea;
 }
 
-.player-result-right .final-score {
+.player-result.player-result-right .final-score {
     color: #f5576c;
 }
 
@@ -475,6 +527,10 @@ body {
         font-size: 1em;
     }
     
+    .mode-options {
+        flex-direction: column;
+    }
+    
     .game-screen {
         flex-direction: column;
         padding: 10px;
@@ -509,7 +565,7 @@ body {
     }
     
     .piano-tile {
-        height: 60px;
+        height: 120px; /* 移动端也调整高度 */
         font-size: 1em;
     }
     
@@ -596,7 +652,7 @@ body {
     }
     
     .piano-tile {
-        height: 50px;
+        height: 100px; /* 小屏幕设备调整高度 */
         font-size: 0.9em;
     }
     
@@ -644,10 +700,10 @@ body {
 /* 触屏设备优化 */
 @media (hover: none) and (pointer: coarse) {
     .piano-tile {
-        height: 70px;
+        height: 140px; /* 触屏设备调整高度 */
         font-size: 1.1em;
         /* 增加触控区域 */
-        min-height: 70px;
+        min-height: 140px;
     }
     
     .piano-tile:hover {
