@@ -117,6 +117,13 @@ function setupTouchControls() {
         e.preventDefault();
         handleTouch(e, 2);
     }, { passive: false });
+    
+    // 防止页面滚动
+    document.body.addEventListener('touchmove', function(e) {
+        if (gameState.isPlaying) {
+            e.preventDefault();
+        }
+    }, { passive: false });
 }
 
 // 处理触摸事件
